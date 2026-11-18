@@ -6,19 +6,19 @@ supply only their own tools and tool executors.
 
 from __future__ import annotations
 
-from copy import deepcopy
 import json
 import logging
 import math
 import os
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from assignment.env import Environment
 from assignment.agent.tools import INVOKE_SKILL_TOOL
+from assignment.env import Environment
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -152,6 +152,7 @@ class Agent:
 
         # TODO(1.1.a): Add machinery to maintain agent state as it takes actions
         # and observes the results.
+        self.history: list[dict[str, Any]] = []
 
     def load_skills(self, skills_path: Path) -> dict[str, dict[str, str]]:
         """Load the skill folders exposed to this agent."""
@@ -227,6 +228,13 @@ class Agent:
 
         # You want to be careful about which attributes of the class you modify
         # here as they may also be handled by the subclasses.
+        messages = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": self.task_prompt},
+        ]
+        messages.extend(self.history)
+        return messages
+
         raise NotImplementedError
 
     def estimate_active_prompt_tokens(self) -> int:
